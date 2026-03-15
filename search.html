@@ -3,63 +3,6 @@ layout: null
 permalink: /search
 ---
 
-{% assign raw_query = page.query | default: "" %}
-{% if raw_query == "" and site.search_query %}
-  {% assign raw_query = site.search_query %}
-{% endif %}
-
-{% if raw_query != "" %}
-  {% assign query = raw_query | downcase %}
-  {% assign base_name = query %}
-  
-  {% comment %} Daftar kata yang akan dihapus untuk mendapatkan base name {% endcomment %}
-  {% assign remove_terms = "leak,leaked,leaks,exclusive,private,unreleased,rare,photo,photos,picture,pictures,image,images,gallery,video,videos,clip,clips,footage,bio,biodata,biography,age,height,weight,measurements,instagram,onlyfans,twitter,tiktok,snapchat,youtube,facebook,uncensored,behind,the,scenes,bts,backstage,download,zip,mega,collection,archive,folder,hot,sexy,beautiful,cute,gorgeous,body,figure,curves,physique,boyfriend,girlfriend,husband,wife,dating,relationship,net,worth,salary,income" | split: ',' %}
-  
-  {% for term in remove_terms %}
-    {% assign base_name = base_name | replace: term, '' | replace: '  ', ' ' | strip %}
-  {% endfor %}
-  
-  {% if base_name == "" %}
-    {% assign base_name = query %}
-  {% endif %}
-  
-  {% comment %} Deteksi tipe query {% endcomment %}
-  {% assign query_type = 'general' %}
-  {% if query contains 'leak' or query contains 'leaked' or query contains 'leaks' %}
-    {% assign query_type = 'leak' %}
-  {% elsif query contains 'photo' or query contains 'photos' or query contains 'picture' or query contains 'gallery' %}
-    {% assign query_type = 'photo' %}
-  {% elsif query contains 'video' or query contains 'videos' or query contains 'clip' or query contains 'footage' %}
-    {% assign query_type = 'video' %}
-  {% elsif query contains 'bio' or query contains 'biography' or query contains 'age' or query contains 'height' %}
-    {% assign query_type = 'bio' %}
-  {% elsif query contains 'instagram' or query contains 'onlyfans' or query contains 'twitter' or query contains 'tiktok' %}
-    {% assign query_type = 'platform' %}
-  {% endif %}
-  
-  {% comment %} Title berdasarkan tipe query {% endcomment %}
-  {% if query_type == 'leak' %}
-    {% assign title = query | append: ' - Complete Leak Archive & Exclusive Collection' %}
-    {% assign h1 = query | append: ' - Complete Leak Archive & Exclusive Collection' %}
-  {% elsif query_type == 'photo' %}
-    {% assign title = query | append: ' - Complete Photo Gallery & Image Archive' %}
-    {% assign h1 = query | append: ' - Complete Photo Gallery & Image Archive' %}
-  {% elsif query_type == 'video' %}
-    {% assign title = query | append: ' - Complete Video Collection & Footage' %}
-    {% assign h1 = query | append: ' - Complete Video Collection & Footage' %}
-  {% elsif query_type == 'bio' %}
-    {% assign title = query | append: ' - Complete Biography & Personal Details' %}
-    {% assign h1 = query | append: ' - Complete Biography & Personal Details' %}
-  {% elsif query_type == 'platform' %}
-    {% assign title = query | append: ' - Platform Content & Exclusive Media' %}
-    {% assign h1 = query | append: ' - Platform Content & Exclusive Media' %}
-  {% else %}
-    {% assign title = query | append: ' - Complete Profile, Exclusive Content & Media Archive' %}
-    {% assign h1 = query | append: ' - Complete Profile, Exclusive Content & Media Archive' %}
-  {% endif %}
-  
-{% endif %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,286 +10,267 @@ permalink: /search
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="content-language" content="en">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="/search">
+    <link rel="canonical" href="{{ site.url }}/search">
     
-    <title>{{ title | default: 'Search - Exclusive Content Archive' }}</title>
-    <meta name="description" content="{% if query %}Find complete {{ query }} content including photos, videos, biography, and exclusive material. Comprehensive archive.{% else %}Search exclusive content archive.{% endif %}">
+    <!-- Title akan di-update oleh JavaScript -->
+    <title id="dynamic-title">Search - {{ site.title }}</title>
     
-    <link rel="home" href="/">
-    <link rel="sitemap" href="/sitemap.xml">
+    <!-- Meta Description akan di-update oleh JavaScript -->
+    <meta id="dynamic-description" name="description" content="Search exclusive content on {{ site.title }}">
+    
+    <link rel="home" href="{{ site.url }}/">
+    <link rel="sitemap" href="{{ site.url }}/sitemap.xml">
     
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 1000px; margin: 0 auto; padding: 20px; }
-        h1 { color: #333; font-size: 2.2em; }
-        h2 { color: #444; margin-top: 40px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #333; }
         a { color: #0066cc; text-decoration: none; }
         a:hover { text-decoration: underline; }
-        section { margin: 40px 0; }
-        .breadcrumb { padding: 10px 0; margin-bottom: 20px; border-bottom: 1px solid #eee; }
-        .breadcrumb a { color: #666; }
-        .breadcrumb span { color: #333; font-weight: bold; }
-        .quick-facts { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 30px 0; }
-        .faq-item { margin: 25px 0; }
-        ul { list-style: none; padding: 0; }
-        li { margin-bottom: 8px; }
-        hr { border: none; border-top: 1px solid #eee; margin: 30px 0; }
+        section { margin: 30px 0; padding: 20px; background: #f9f9f9; border-radius: 5px; }
+        ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+        li { background: #fff; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; }
+        .hidden { display: none; }
+        #query-display { font-weight: bold; }
     </style>
 </head>
 <body>
     <main>
-        {% if query %}
+        <!-- H1 akan di-update JavaScript -->
+        <h1 id="main-heading">Exclusive Content Search</h1>
         
-        <!-- BREADCRUMB -->
-        <div class="breadcrumb">
-            <a href="/">Home</a> › 
-            <a href="/search">People</a> › 
-            <span>{{ base_name }}</span>
+        <!-- Intro paragraph (akan di-update) -->
+        <div id="intro-paragraph"></div>
+        
+        <!-- Search Results Section (akan diisi JavaScript) -->
+        <div id="search-results"></div>
+        
+        <!-- Template sections - akan ditampilkan jika ada query -->
+        <div id="content-sections" class="hidden">
+            <!-- SECTION 1: Leak Variants -->
+            <section id="leak-variants">
+                <h2>🔍 All <span class="query-placeholder"></span> Leak Variants</h2>
+                <ul id="leak-variants-list"></ul>
+            </section>
+            
+            <!-- SECTION 2: Photo/Gallery -->
+            <section id="photo-gallery">
+                <h2>📸 <span class="query-placeholder"></span> Photo Gallery</h2>
+                <ul id="photo-gallery-list"></ul>
+            </section>
+            
+            <!-- SECTION 3: Video -->
+            <section id="video-collection">
+                <h2>🎥 <span class="query-placeholder"></span> Video Collection</h2>
+                <ul id="video-collection-list"></ul>
+            </section>
+            
+            <!-- SECTION 4: Bio -->
+            <section id="bio-info">
+                <h2>📋 <span class="query-placeholder"></span> Biography & Info</h2>
+                <ul id="bio-info-list"></ul>
+            </section>
+            
+            <!-- SECTION 5: Social Media -->
+            <section id="social-media">
+                <h2>🌐 <span class="query-placeholder"></span> Social Media Content</h2>
+                <ul id="social-media-list"></ul>
+            </section>
+            
+            <!-- SECTION 6: Trending -->
+            <section id="trending">
+                <h2>🔥 Trending <span class="query-placeholder"></span> Searches</h2>
+                <ul id="trending-list"></ul>
+            </section>
+            
+            <!-- SECTION 7: FAQ -->
+            <section id="faq">
+                <h2>❓ Frequently Asked Questions About <span class="query-placeholder"></span></h2>
+                <div id="faq-content"></div>
+            </section>
         </div>
         
-        <!-- H1 -->
-        <h1>{{ h1 }}</h1>
-        
-        <!-- QUICK FACTS -->
-        <div class="quick-facts">
-            <h2>About {{ base_name }}</h2>
-            <p>
-                <strong>Known as:</strong> Public Figure • 
-                <strong>Profession:</strong> Entertainer/Artist • 
-                <strong>Active years:</strong> Career period • 
-                <strong>Popular for:</strong> Public presence and work
-            </p>
-        </div>
-        
-        <!-- INTRO PARAGRAPH (ADAPTIF) -->
-        {% if query_type == 'leak' %}
-        <p>Welcome to the most comprehensive collection of <strong>{{ query }}</strong> content available online. This archive brings together all <strong>{{ base_name }} leaked material</strong>, including <a href="/search?q={{ base_name | url_encode }}+leaked+photos">leaked photos</a>, <a href="/search?q={{ base_name | url_encode }}+leaked+videos">private videos</a>, and <a href="/search?q={{ base_name | url_encode }}+exclusive+content">exclusive content</a> that has surfaced over time. Whether you're looking for <a href="/search?q={{ base_name | url_encode }}+rare+leaks">rare leaks</a>, <a href="/search?q={{ base_name | url_encode }}+uncensored">uncensored material</a>, or <a href="/search?q={{ base_name | url_encode }}+behind+the+scenes">behind-the-scenes moments</a>, this page has everything in one place.</p>
-        
-        {% elsif query_type == 'photo' %}
-        <p>Welcome to the complete <strong>{{ query }}</strong> photo archive. This gallery contains every <a href="/search?q={{ base_name | url_encode }}+photos">{{ base_name }} photo</a> available, from <a href="/search?q={{ base_name | url_encode }}+professional+photoshoot">professional photoshoots</a> to <a href="/search?q={{ base_name | url_encode }}+candid">candid moments</a>. Browse through <a href="/search?q={{ base_name | url_encode }}+gallery">photo galleries</a>, <a href="/search?q={{ base_name | url_encode }}+pictures">picture collections</a>, and <a href="/search?q={{ base_name | url_encode }}+images">image archives</a> spanning her entire career. Whether you're looking for <a href="/search?q={{ base_name | url_encode }}+rare+photos">rare shots</a> or <a href="/search?q={{ base_name | url_encode }}+high+quality">high-quality images</a>, you'll find them here.</p>
-        
-        {% elsif query_type == 'video' %}
-        <p>Welcome to the complete <strong>{{ query }}</strong> video archive. This collection brings together all <a href="/search?q={{ base_name | url_encode }}+videos">{{ base_name }} videos</a>, including <a href="/search?q={{ base_name | url_encode }}+performances">performances</a>, <a href="/search?q={{ base_name | url_encode }}+interviews">interviews</a>, <a href="/search?q={{ base_name | url_encode }}+behind+the+scenes">behind-the-scenes footage</a>, and <a href="/search?q={{ base_name | url_encode }}+exclusive+clips">exclusive clips</a>. Explore <a href="/search?q={{ base_name | url_encode }}+video+footage">video footage</a> from throughout her career, including <a href="/search?q={{ base_name | url_encode }}+rare+videos">rare recordings</a> and <a href="/search?q={{ base_name | url_encode }}+high+quality">high-definition content</a>.</p>
-        
-        {% elsif query_type == 'bio' %}
-        <p>Welcome to the complete <strong>{{ query }}</strong> biography archive. Here you'll find detailed information about <a href="/search?q={{ base_name | url_encode }}+bio">{{ base_name }}'s life</a>, including <a href="/search?q={{ base_name | url_encode }}+age">age</a>, <a href="/search?q={{ base_name | url_encode }}+height">height</a>, <a href="/search?q={{ base_name | url_encode }}+background">background</a>, and <a href="/search?q={{ base_name | url_encode }}+career">career journey</a>. Learn about <a href="/search?q={{ base_name | url_encode }}+personal+life">personal life</a>, <a href="/search?q={{ base_name | url_encode }}+relationships">relationships</a>, and <a href="/search?q={{ base_name | url_encode }}+net+worth">net worth</a>. This comprehensive biography compiles all publicly available information.</p>
-        
-        {% elsif query_type == 'platform' %}
-        <p>Welcome to the <strong>{{ query }}</strong> platform content archive. This collection brings together all <a href="/search?q={{ base_name | url_encode }}+{{ query | split:' ' | last }}">{{ query }}</a> material, including <a href="/search?q={{ base_name | url_encode }}+instagram">Instagram posts</a>, <a href="/search?q={{ base_name | url_encode }}+onlyfans">OnlyFans content</a>, <a href="/search?q={{ base_name | url_encode }}+twitter">Twitter activity</a>, and more. Explore exclusive platform-specific content all in one place.</p>
-        
-        {% else %}
-        <p>Welcome to the most comprehensive collection of <strong>{{ query }}</strong> content available online. This archive brings together everything about <strong>{{ base_name }}</strong> in one place: <a href="/search?q={{ base_name | url_encode }}+photos">photos</a>, <a href="/search?q={{ base_name | url_encode }}+videos">videos</a>, <a href="/search?q={{ base_name | url_encode }}+biography">biography</a>, <a href="/search?q={{ base_name | url_encode }}+exclusive">exclusive content</a>, and <a href="/search?q={{ base_name | url_encode }}+leaked">leaked material</a>. Whether you're a longtime fan or just discovering {{ base_name }}, this page provides complete access to all available content.</p>
-        {% endif %}
-        
-        <hr>
-        
-        <!-- SECTION 1: Most Searched -->
+        <!-- Popular Categories (tetap tampil) -->
         <section>
-            <h2>Most Searched {{ base_name }} Content</h2>
-            <p>Fans searching for <strong>{{ base_name }}</strong> typically look for 
-            <a href="/search?q={{ base_name | url_encode }}+leaked">{{ base_name }} leaked</a> material, 
-            <a href="/search?q={{ base_name | url_encode }}+photos">photo galleries</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+videos">video collections</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+bio">personal biography</a>. Others seek 
-            <a href="/search?q={{ base_name | url_encode }}+exclusive">exclusive content</a> from platforms like 
-            <a href="/search?q={{ base_name | url_encode }}+onlyfans">OnlyFans</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+instagram">Instagram</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+tiktok">TikTok</a>. Our archive covers all these areas comprehensively.</p>
-        </section>
-        
-        <!-- SECTION 2: Photo Gallery -->
-        <section>
-            <h2>{{ base_name }} Photo Gallery</h2>
-            <p>The <strong>{{ base_name }} photo archive</strong> includes 
-            <a href="/search?q={{ base_name | url_encode }}+photos">{{ base_name }} photos</a> from throughout her career, including 
-            <a href="/search?q={{ base_name | url_encode }}+professional+photoshoot">professional photoshoots</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+candid">candid moments</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+behind+the+scenes">behind-the-scenes shots</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+selfie">selfies</a>. Fans particularly enjoy 
-            <a href="/search?q={{ base_name | url_encode }}+rare+photos">rare photos</a> and 
-            <a href="/search?q={{ base_name | url_encode }}+uncensored">uncensored images</a> that show different sides of her.</p>
-            
-            <p>Browse through <a href="/search?q={{ base_name | url_encode }}+gallery">complete galleries</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+album">photo albums</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+picture+collection">picture collections</a> organized by era and context. 
-            For specific types, we have <a href="/search?q={{ base_name | url_encode }}+red+carpet">red carpet photos</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+magazine+shoot">magazine pictorials</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+beach+vacation">vacation pictures</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+workout">fitness photos</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+lingerie">lingerie shots</a> from various photoshoots.</p>
-        </section>
-        
-        <!-- SECTION 3: Video Archive -->
-        <section>
-            <h2>{{ base_name }} Video Collection</h2>
-            <p>Our <strong>{{ base_name }} video archive</strong> brings together 
-            <a href="/search?q={{ base_name | url_encode }}+videos">{{ base_name }} videos</a> from all stages of her career. This includes 
-            <a href="/search?q={{ base_name | url_encode }}+performances">live performances</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+interviews">interviews</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+behind+the+scenes+footage">behind-the-scenes footage</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+exclusive+clips">exclusive clips</a>.</p>
-            
-            <p>Explore <a href="/search?q={{ base_name | url_encode }}+video+footage">video footage</a> from throughout her career, 
-            including <a href="/search?q={{ base_name | url_encode }}+rare+videos">rare recordings</a> and 
-            <a href="/search?q={{ base_name | url_encode }}+high+quality+videos">high-definition content</a>. 
-            The collection also features <a href="/search?q={{ base_name | url_encode }}+music+videos">music videos</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+dance+practice">dance practices</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+viral+clips">viral moments</a>.</p>
-        </section>
-        
-        <!-- SECTION 4: Leak Collection -->
-        <section>
-            <h2>{{ base_name }} Leak Archive</h2>
-            <p>The <strong>{{ base_name }} leak archive</strong> contains 
-            <a href="/search?q={{ base_name | url_encode }}+leaked">{{ base_name }} leaked</a> material that has surfaced over time, including 
-            <a href="/search?q={{ base_name | url_encode }}+leaked+photos">leaked photos</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+leaked+videos">private videos</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+exclusive+leaks">exclusive leaks</a>. Our collection includes 
-            <a href="/search?q={{ base_name | url_encode }}+rare+leaks">rare leaks</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+unreleased">unreleased content</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+confidential">confidential material</a>.</p>
-            
-            <p>Fans also search for <a href="/search?q={{ base_name | url_encode }}+private+collection">private collections</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+archive">complete archives</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+original+leaks">original source material</a>.</p>
-        </section>
-        
-        <!-- SECTION 5: Platform Content -->
-        <section>
-            <h2>{{ base_name }} Across Platforms</h2>
-            <p>Throughout her career, {{ base_name }} has maintained presence across multiple platforms. 
-            Our archive organizes content by source:</p>
-            
+            <h2>Popular Leak Categories</h2>
             <ul>
-                <li><a href="/search?q={{ base_name | url_encode }}+instagram">Instagram content</a> – posts, stories, and shared moments</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+onlyfans">OnlyFans content</a> – exclusive subscriber material</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+twitter">Twitter/X archive</a> – tweets and interactions</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+tiktok">TikTok videos</a> – short-form content and trends</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+youtube">YouTube appearances</a> – interviews and features</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+snapchat">Snapchat moments</a> – temporary content preserved</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+discord">Discord community</a> – fan-shared material</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+telegram">Telegram channels</a> – organized collections</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+reddit">Reddit discussions</a> – community conversations</li>
+                <li><a href="/search?q=celebrity+leaks">Celebrity Leaks</a></li>
+                <li><a href="/search?q=onlyfans+leaks">OnlyFans Leaks</a></li>
+                <li><a href="/search?q=video+leaks">Video Leaks</a></li>
+                <li><a href="/search?q=photo+gallery">Photo Gallery</a></li>
+                <li><a href="/search?q=exclusive+content">Exclusive Content</a></li>
             </ul>
         </section>
-        
-        <!-- SECTION 6: Exclusive Content -->
-        <section>
-            <h2>Exclusive {{ base_name }} Content</h2>
-            <p>Beyond public appearances, various <strong>exclusive {{ base_name }} content</strong> has emerged. 
-            This section features <a href="/search?q={{ base_name | url_encode }}+behind+the+scenes">behind-the-scenes moments</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+private+gatherings">private gatherings</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+uncensored">uncensored photos</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+intimate+moments">intimate glimpses</a> into her personal life.</p>
-            
-            <p>The collection includes <a href="/search?q={{ base_name | url_encode }}+rare+unreleased">rare and unreleased material</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+private+moments">private moments</a> captured during downtime, and 
-            <a href="/search?q={{ base_name | url_encode }}+exclusive+access">exclusive access content</a>. 
-            Browse <a href="/search?q={{ base_name | url_encode }}+bts">BTS footage</a>, 
-            <a href="/search?q={{ base_name | url_encode }}+backstage">backstage moments</a>, and 
-            <a href="/search?q={{ base_name | url_encode }}+private+life">private life glimpses</a>.</p>
-        </section>
-        
-        <!-- SECTION 7: Biography -->
-        <section>
-            <h2>About {{ base_name }}</h2>
-            <p>Understanding <strong>{{ base_name }}</strong> means knowing her story. This section covers:</p>
-            
-            <ul>
-                <li><a href="/search?q={{ base_name | url_encode }}+early+life">Early life and background</a> – where she came from</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+career">Career journey</a> – key moments and achievements</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+age">Age and personal details</a> – when publicly known</li>
-                <li><a href="/search?q={{ base_name | url_encode }}+height">Height and measurements</a></li>
-                <li><a href="/search?q={{ base_name | url_encode }}+nationality">Nationality and origin</a></li>
-                <li><a href="/search?q={{ base_name | url_encode }}+relationships">Relationships and family</a></li>
-                <li><a href="/search?q={{ base_name | url_encode }}+net+worth">Net worth and career earnings</a></li>
-                <li><a href="/search?q={{ base_name | url_encode }}+social+media">Social media presence</a></li>
-            </ul>
-        </section>
-        
-        <!-- SECTION 8: Related Searches -->
-        <section>
-            <h2>You Might Also Be Interested In</h2>
-            <ul>
-                <li><a href="/search?q=celebrity+profiles">Celebrity profiles and archives</a></li>
-                <li><a href="/search?q=exclusive+collections">Exclusive content collections</a></li>
-                <li><a href="/search?q=photo+archives">Photo archives</a></li>
-                <li><a href="/search?q=video+collections">Video collections</a></li>
-                <li><a href="/search?q=leaked+content">Leaked content</a></li>
-                <li><a href="/search?q=onlyfans+leaks">OnlyFans leaks</a></li>
-            </ul>
-        </section>
-        
-        <!-- SECTION 9: FAQ -->
-        <section>
-            <h2>Common Questions About {{ base_name }}</h2>
-            
-            <div class="faq-item">
-                <h3>What type of content is available about {{ base_name }}?</h3>
-                <p>Our archive contains <a href="/search?q={{ base_name | url_encode }}+photos">photos</a>, 
-                <a href="/search?q={{ base_name | url_encode }}+videos">videos</a>, 
-                <a href="/search?q={{ base_name | url_encode }}+biography">biographical information</a>, and 
-                <a href="/search?q={{ base_name | url_encode }}+exclusive">exclusive material</a> that has surfaced over time. 
-                The collection spans her entire career and includes both public and behind-the-scenes content.</p>
-            </div>
-            
-            <div class="faq-item">
-                <h3>Where can I find {{ base_name }} photos?</h3>
-                <p>The <a href="/search?q={{ base_name | url_encode }}+photos">{{ base_name }} photo gallery</a> section above contains 
-                the complete image archive, including <a href="/search?q={{ base_name | url_encode }}+professional+photoshoot">professional shoots</a>, 
-                <a href="/search?q={{ base_name | url_encode }}+candid">candid moments</a>, and everything in between.</p>
-            </div>
-            
-            <div class="faq-item">
-                <h3>Are there {{ base_name }} videos available?</h3>
-                <p>Yes, our <a href="/search?q={{ base_name | url_encode }}+videos">{{ base_name }} video collection</a> includes 
-                performances, interviews, behind-the-scenes footage, and other video content.</p>
-            </div>
-            
-            <div class="faq-item">
-                <h3>What exclusive content exists for {{ base_name }}?</h3>
-                <p>The <a href="/search?q={{ base_name | url_encode }}+exclusive">exclusive content section</a> features material beyond mainstream releases, 
-                including behind-the-scenes moments, private gatherings, and content from premium platforms.</p>
-            </div>
-            
-            <div class="faq-item">
-                <h3>How can I learn about {{ base_name }}'s background?</h3>
-                <p>The <a href="/search?q={{ base_name | url_encode }}+biography">biography section</a> provides comprehensive information about her life, 
-                career, and personal background based on publicly available sources.</p>
-            </div>
-        </section>
-        
-        <!-- SECTION 10: About This Archive -->
-        <section>
-            <h2>About This {{ base_name }} Archive</h2>
-            <p>This page serves as a permanent, comprehensive resource for <strong>{{ base_name }}</strong> content. 
-            Unlike temporary collections or scattered sources, this archive brings everything together in one 
-            organized, accessible location. The collection continues to grow as new material becomes available, 
-            ensuring it remains the most complete resource for fans and researchers alike.</p>
-        </section>
-        
-        {% else %}
-        <!-- Tampilan default jika tidak ada query -->
-        <h1>Search Exclusive Content Archive</h1>
-        <p>Browse our comprehensive collections of celebrity content, including photos, videos, biographies, and exclusive material.</p>
-        
-        <section>
-            <h2>Popular Categories</h2>
-            <ul>
-                <li><a href="/search?q=celebrity+profiles">Celebrity Profiles</a></li>
-                <li><a href="/search?q=exclusive+collections">Exclusive Collections</a></li>
-                <li><a href="/search?q=photo+archives">Photo Archives</a></li>
-                <li><a href="/search?q=video+collections">Video Collections</a></li>
-                <li><a href="/search?q=leaked+content">Leaked Content</a></li>
-            </ul>
-        </section>
-        {% endif %}
     </main>
     
-    <!-- Hidden navigation -->
+    <!-- Hidden navigation for bots -->
     <div style="display:none;">
         <a href="/">Home</a>
-        <a href="/search">Search</a>
+        <a href="/search?q=leaks">All Leaks</a>
         <a href="/sitemap.xml">Sitemap</a>
     </div>
+    
+    <script>
+    (function() {
+        // Get query from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        let query = urlParams.get('q');
+        
+        if (!query) {
+            // Tidak ada query, tampilkan halaman default
+            document.getElementById('main-heading').textContent = 'Exclusive Content Search';
+            return;
+        }
+        
+        // Decode query
+        query = decodeURIComponent(query.replace(/\+/g, ' '));
+        
+        // Update title
+        document.title = query + ' - Exclusive Content - {{ site.title }}';
+        
+        // Update meta description
+        document.querySelector('meta[name="description"]').setAttribute('content', 
+            'Find exclusive ' + query + ' content, leaked photos, videos, gallery, and personal bio.');
+        
+        // Update H1 berdasarkan tipe query
+        const heading = document.getElementById('main-heading');
+        if (query.includes('leak') || query.includes('leaked') || query.includes('leaks')) {
+            heading.textContent = query + ' - Exclusive Leaked Content';
+        } else if (query.includes('video') || query.includes('videos')) {
+            heading.textContent = query + ' - Video Collection';
+        } else if (query.includes('photo') || query.includes('photos') || query.includes('gallery')) {
+            heading.textContent = query + ' - Photo Gallery';
+        } else if (query.includes('bio') || query.includes('biodata') || query.includes('biography')) {
+            heading.textContent = query + ' - Biography & Personal Info';
+        } else {
+            heading.textContent = query + ' - Exclusive Content & Media';
+        }
+        
+        // Update intro paragraph
+        const intro = document.getElementById('intro-paragraph');
+        if (query.includes('leak') || query.includes('leaked') || query.includes('leaks')) {
+            intro.innerHTML = '<p>Welcome to the exclusive collection of <strong>' + query + '</strong>. Here you\'ll find leaked photos, videos, and exclusive content that has been shared online.</p>';
+        } else if (query.includes('video') || query.includes('videos')) {
+            intro.innerHTML = '<p>Browse the complete video collection of <strong>' + query + '</strong>. We have compiled all available videos, including exclusive clips, leaked footage, and viral moments.</p>';
+        } else if (query.includes('photo') || query.includes('photos') || query.includes('gallery')) {
+            intro.innerHTML = '<p>View the full photo gallery of <strong>' + query + '</strong>. High-quality images, leaked photos, and exclusive pictures all in one place.</p>';
+        } else if (query.includes('bio') || query.includes('biodata') || query.includes('biography')) {
+            intro.innerHTML = '<p>Complete biography and personal details of <strong>' + query + '</strong>. Find information about age, height, personal life, career, and exclusive behind-the-scenes facts.</p>';
+        } else {
+            intro.innerHTML = '<p>Find all exclusive content about <strong>' + query + '</strong> including leaked photos, videos, gallery, and personal biography.</p>';
+        }
+        
+        // Tampilkan content sections
+        document.getElementById('content-sections').classList.remove('hidden');
+        
+        // Update semua placeholder dengan query
+        document.querySelectorAll('.query-placeholder').forEach(el => {
+            el.textContent = query;
+        });
+        
+        // Generate links untuk setiap section
+        
+        // Leak variants
+        const leakList = document.getElementById('leak-variants-list');
+        leakList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+leaked">${query} leaked (latest)</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+leak">${query} leak collection</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+leaks">${query} leaks archive</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+exclusive">${query} exclusive content</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+private">${query} private collection</a></li>
+        `;
+        
+        // Photo gallery
+        const photoList = document.getElementById('photo-gallery-list');
+        photoList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+photos">${query} photos gallery</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+photo+leaked">${query} leaked photos</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+pictures">${query} pictures archive</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+images">${query} images collection</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+gallery">${query} complete gallery</a></li>
+        `;
+        
+        // Video collection
+        const videoList = document.getElementById('video-collection-list');
+        videoList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+videos">${query} videos</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+video+leaked">${query} leaked videos</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+video+exclusive">${query} exclusive videos</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+footage">${query} footage archive</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+clips">${query} video clips</a></li>
+        `;
+        
+        // Bio info
+        const bioList = document.getElementById('bio-info-list');
+        bioList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+bio">${query} bio</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+biodata">${query} biodata</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+biography">${query} biography</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+personal+details">${query} personal details</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+age">${query} age & height</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+boyfriend">${query} boyfriend/girlfriend</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+relationship">${query} relationship status</a></li>
+        `;
+        
+        // Social media
+        const socialList = document.getElementById('social-media-list');
+        socialList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+instagram">${query} Instagram leaks</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+onlyfans">${query} OnlyFans leaks</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+twitter">${query} Twitter archive</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+tiktok">${query} TikTok videos</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+snapchat">${query} Snapchat leaks</a></li>
+        `;
+        
+        // Trending
+        const trendingList = document.getElementById('trending-list');
+        trendingList.innerHTML = `
+            <li><a href="/search?q=${encodeURIComponent(query)}+new+leaks">${query} new leaks 2026</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+latest">${query} latest content</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+uncensored">${query} uncensored</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+zip+download">${query} zip download</a></li>
+            <li><a href="/search?q=${encodeURIComponent(query)}+mega">${query} mega link</a></li>
+        `;
+        
+        // FAQ
+        const faqContent = document.getElementById('faq-content');
+        faqContent.innerHTML = `
+            <div>
+                <h3>Are there new ${query} leaks today?</h3>
+                <p>We regularly update our collection with the latest ${query} leaked content. Check the "new leaks" section above.</p>
+            </div>
+            <div>
+                <h3>Where can I find ${query} leaked videos?</h3>
+                <p>Visit our <a href="/search?q=${encodeURIComponent(query)}+videos">video collection</a> section.</p>
+            </div>
+            <div>
+                <h3>Is ${query} leaked photo gallery real?</h3>
+                <p>Our gallery contains leaked photos that have been shared online. Check our <a href="/search?q=${encodeURIComponent(query)}+gallery">official gallery</a>.</p>
+            </div>
+            <div>
+                <h3>How to download all ${query} leaks?</h3>
+                <p>Check our <a href="/search?q=${encodeURIComponent(query)}+zip+download">zip download section</a>.</p>
+            </div>
+            <div>
+                <h3>What is ${query} real name and bio?</h3>
+                <p>Find complete <a href="/search?q=${encodeURIComponent(query)}+bio">biography and personal details</a>.</p>
+            </div>
+        `;
+        
+        // Schema markup
+        const schema = document.createElement('script');
+        schema.type = 'application/ld+json';
+        schema.textContent = JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": query + " - Exclusive Content",
+            "about": {
+                "@type": "Thing",
+                "name": query
+            }
+        });
+        document.head.appendChild(schema);
+        
+    })();
+    </script>
 </body>
 </html>
